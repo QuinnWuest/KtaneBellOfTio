@@ -1,0 +1,10 @@
+{
+  "name": "BellOfTioModule-Editor",
+  "references": [
+    "BellOfTioModule"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}
