@@ -320,6 +320,7 @@ public class BellOfTioScript : MonoBehaviour
             {
                 Debug.LogFormat("[Bell of Tío #{0}] Incorrectly submitted \"{1}\". Strike.", _moduleId, _input);
                 _input = "";
+                _gridPos = -5;
                 Module.HandleStrike();
                 TempText.text = "-";
                 _inputLocked = true;
