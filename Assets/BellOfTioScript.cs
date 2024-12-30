@@ -81,7 +81,7 @@ public class BellOfTioScript : MonoBehaviour
                 RowsToSwap = Enumerable.Range(0, 5).ToArray().Shuffle().Take(2).ToArray(),
                 ColumnsToSwap = Enumerable.Range(0, 5).ToArray().Shuffle().Take(2).ToArray(),
                 RandomPositionsToCycle = new int[] { randRows[0] * 5 + randCols[0], randRows[1] * 5 + randCols[1], randRows[2] * 5 + randCols[2], randRows[3] * 5 + randCols[3], randRows[4] * 5 + randCols[4] },
-                RowAndColumnSwapPos = Rnd.Range(0, 5)
+                RowAndColumnSwapPos = Rnd.Range(1, 5)
             );
         }
     }
