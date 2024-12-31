@@ -99,6 +99,7 @@ public class BellOfTioScript : MonoBehaviour
     private ReadingState _readingState;
     private int _gridPos = -5;
     private bool _inputLocked;
+    private bool _isInteracting;
 
     private readonly int[][] _transformations = new int[5][];
     private GridModificationType[] _modificationsToPickFrom;
@@ -258,6 +259,7 @@ public class BellOfTioScript : MonoBehaviour
             if (_spamTimer != null)
                 StopCoroutine(_spamTimer);
             _spamTimer = StartCoroutine(SpamTimer());
+            _isInteracting = true;
         }
         else if (_readingState == ReadingState.DownTheColumn)
         {
@@ -305,6 +307,7 @@ public class BellOfTioScript : MonoBehaviour
             yield return new WaitForSeconds(2f);
             TempText.text = "-";
             _inputLocked = false;
+            _isInteracting = false;
             yield break;
         }
         if (_readingState == ReadingState.AlongTheRow)
@@ -326,6 +329,7 @@ public class BellOfTioScript : MonoBehaviour
                 _inputLocked = true;
                 yield return new WaitForSeconds(1.5f);
                 _inputLocked = false;
+                _isInteracting = false;
             }
             _readingState = ReadingState.Inactive;
         }
@@ -377,6 +381,7 @@ public class BellOfTioScript : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         TempText.text = "-";
         _readingState = ReadingState.Inactive;
+        _isInteracting = false;
         _inputLocked = false;
     }
 
@@ -562,17 +567,13 @@ public class BellOfTioScript : MonoBehaviour
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if (_inputLocked)
-        {
-            yield return "sendtochaterror Input is currently disabled as your assistant is currently speaking.";
-            yield break;
-        }
-
         Match m;
         m = Regex.Match(command, @"^\s*ring\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         if (m.Success)
         {
             yield return null;
+            while (_isInteracting)
+                yield return null;
             BellSel.OnInteract(); yield return new WaitForSeconds(0.1f); BellSel.OnInteractEnded();
             yield break;
         }
@@ -581,6 +582,8 @@ public class BellOfTioScript : MonoBehaviour
         if (m.Success)
         {
             yield return null;
+            while (_isInteracting)
+                yield return null;
             BellSel.OnInteract(); yield return new WaitForSeconds(0.1f); BellSel.OnInteractEnded();
             int row = int.Parse(m.Groups["row"].Value) - 1;
             int col = int.Parse(m.Groups["col"].Value) - 1;
@@ -608,6 +611,8 @@ public class BellOfTioScript : MonoBehaviour
         if (m.Success)
         {
             yield return null;
+            while (_isInteracting)
+                yield return null;
             BellSel.OnInteract();
             int dig = int.Parse(m.Groups["dig"].Value) - 1;
             while (_gridPos / 5 != dig)
@@ -652,7 +657,7 @@ public class BellOfTioScript : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         while (_readingState != ReadingState.Inactive || _inputLocked)
             yield return true;
-        
+
         // Add each letter to the input
         for (int i = _input.Length; i < 5; i++)
         {
