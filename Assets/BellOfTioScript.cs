@@ -211,13 +211,6 @@ public class BellOfTioScript : MonoBehaviour
                 _moduleId, ordinals[logIx], _modificationValue.IsRingClockwise ? "" : "counter", _modificationValue.RingCycleCount);
             logIx++;
         }
-
-        DebugLogGrid();
-    }
-
-    private void DebugLogGrid()
-    {
-        Debug.Log(_letterGrid.Substring(0, 5) + "\n" + _letterGrid.Substring(5, 5) + "\n" + _letterGrid.Substring(10, 5) + "\n" + _letterGrid.Substring(15, 5) + "\n" + _letterGrid.Substring(20, 5));
     }
 
     private void BellRelease()
@@ -363,7 +356,6 @@ public class BellOfTioScript : MonoBehaviour
                 }
             }
             Debug.LogFormat("[Bell of Tío #{0}] The letter grid is now: {1}", _moduleId, _letterGrid);
-            DebugLogGrid();
         }
     }
 
@@ -591,12 +583,13 @@ public class BellOfTioScript : MonoBehaviour
                 yield return null;
             yield return new WaitForSeconds(0.5f);
             BellSel.OnInteract(); yield return new WaitForSeconds(0.1f); BellSel.OnInteractEnded();
-            if (col == 1)
+            yield return new WaitForSeconds(0.15f);
+            if (col == 0)
             {
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 3; i++)
                 {
-                    BellSel.OnInteract();
-                    yield return new WaitForSeconds(0.5f);
+                    BellSel.OnInteract(); yield return new WaitForSeconds(0.1f); BellSel.OnInteractEnded();
+                    yield return new WaitForSeconds(0.15f);
                 }
                 yield break;
             }
