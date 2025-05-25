@@ -16,8 +16,6 @@ public class BellOfTioScript : MonoBehaviour
     public GameObject BellRingerObj;
     public GameObject BellMainObj;
 
-    public TextMesh TempText;
-
     private int _moduleId;
     private static int _moduleIdCounter = 1;
     private bool _moduleSolved;
@@ -36,32 +34,28 @@ public class BellOfTioScript : MonoBehaviour
         public bool IsRingClockwise;
         public int RingCycleCount;
         public bool IsGridClockwise;
-        public int[] RowFlips;
-        public int[] ColumnFlips;
-        public int[] RowCycles;
+        public int RowFlip;
+        public int ColumnFlip;
+        public int RowCycle;
         public int RowCycleCount;
-        public int[] ColumnCycles;
+        public int ColumnCycle;
         public int ColumnCycleCount;
         public int[] RowsToSwap;
         public int[] ColumnsToSwap;
-        public int[] RandomPositionsToCycle;
-        public int RowAndColumnSwapPos;
 
-        public ModificationValue(bool isRingClockwise, int ringCycleCount, bool isGridClockwise, int[] rowFlips, int[] columnFlips, int[] rowCycles, int rowCycleCount, int[] columnCycles, int columnCycleCount, int[] rowsToSwap, int[] columnsToSwap, int[] randomPositionsToCycle, int rowAndColumnSwapPos)
+        public ModificationValue(bool isRingClockwise, int ringCycleCount, bool isGridClockwise, int rowFlip, int columnFlip, int rowCycle, int rowCycleCount, int columnCycle, int columnCycleCount, int[] rowsToSwap, int[] columnsToSwap)
         {
             IsRingClockwise = isRingClockwise;
             RingCycleCount = ringCycleCount;
             IsGridClockwise = isGridClockwise;
-            RowFlips = rowFlips;
-            ColumnFlips = columnFlips;
-            RowCycles = rowCycles;
+            RowFlip = rowFlip;
+            ColumnFlip = columnFlip;
+            RowCycle = rowCycle;
             RowCycleCount = rowCycleCount;
-            ColumnCycles = columnCycles;
+            ColumnCycle = columnCycle;
             ColumnCycleCount = columnCycleCount;
             RowsToSwap = rowsToSwap;
             ColumnsToSwap = columnsToSwap;
-            RandomPositionsToCycle = randomPositionsToCycle;
-            RowAndColumnSwapPos = rowAndColumnSwapPos;
         }
 
         public ModificationValue GenerateModificationValue()
@@ -72,21 +66,19 @@ public class BellOfTioScript : MonoBehaviour
                 IsRingClockwise = Rnd.Range(0, 2) == 0,
                 RingCycleCount = Rnd.Range(1, 5),
                 IsGridClockwise = Rnd.Range(0, 2) == 0,
-                RowFlips = Enumerable.Range(0, 5).ToArray().Shuffle().Take(Rnd.Range(1, 4)).ToArray(),
-                ColumnFlips = Enumerable.Range(0, 5).ToArray().Shuffle().Take(Rnd.Range(1, 4)).ToArray(),
-                RowCycles = Enumerable.Range(0, 5).ToArray().Shuffle().Take(Rnd.Range(1, 4)).ToArray(),
+                RowFlip = randRows[0],
+                ColumnFlip = randCols[0],
+                RowCycle = randRows[1],
                 RowCycleCount = Rnd.Range(1, 4),
-                ColumnCycles = Enumerable.Range(0, 5).ToArray().Shuffle().Take(Rnd.Range(1, 4)).ToArray(),
+                ColumnCycle = randCols[1],
                 ColumnCycleCount = Rnd.Range(1, 4),
                 RowsToSwap = Enumerable.Range(0, 5).ToArray().Shuffle().Take(2).ToArray(),
-                ColumnsToSwap = Enumerable.Range(0, 5).ToArray().Shuffle().Take(2).ToArray(),
-                RandomPositionsToCycle = new int[] { randRows[0] * 5 + randCols[0], randRows[1] * 5 + randCols[1], randRows[2] * 5 + randCols[2], randRows[3] * 5 + randCols[3], randRows[4] * 5 + randCols[4] },
-                RowAndColumnSwapPos = Rnd.Range(0, 5)
+                ColumnsToSwap = Enumerable.Range(0, 5).ToArray().Shuffle().Take(2).ToArray()
             );
         }
     }
 
-    private readonly ModificationValue _modificationValue = new ModificationValue(false, -1, false, null, null, null, -1, null, -1, null, null, null, -1);
+    private readonly ModificationValue _modificationValue = new ModificationValue(false, -1, false, -1, -1, -1, -1, -1, -1, null, null);
 
     private string _solutionWord;
     private string _input = "";
@@ -114,11 +106,9 @@ public class BellOfTioScript : MonoBehaviour
     enum GridModificationType
     {
         GridClockwise,
-        RowColumnSwap,
         RowFlip,
         TwoColumnsSwap,
         RowCycle,
-        FiveRandomPositionsCycle,
         ColumnCycle,
         TwoRowsSwap,
         ColumnFlip,
@@ -130,9 +120,6 @@ public class BellOfTioScript : MonoBehaviour
         _moduleId = _moduleIdCounter++;
         BellSel.OnInteract += BellPress;
         BellSel.OnInteractEnded += BellRelease;
-
-        // Temp text
-        TempText.gameObject.SetActive(false);
 
         _modificationValue.GenerateModificationValue();
         _solutionWord = _wordList.PickRandom();
@@ -157,16 +144,10 @@ public class BellOfTioScript : MonoBehaviour
                 _moduleId, ordinals[logIx], _modificationValue.IsGridClockwise ? "" : "counter");
             logIx++;
         }
-        if (_modificationsToPickFrom.Contains(GridModificationType.RowColumnSwap))
-        {
-            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will swap Row #{2} with Column #{2}.",
-                _moduleId, ordinals[logIx], _modificationValue.RowAndColumnSwapPos + 1);
-            logIx++;
-        }
         if (_modificationsToPickFrom.Contains(GridModificationType.RowFlip))
         {
-            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will horizontally flip Row{2} {3}.",
-                _moduleId, ordinals[logIx], _modificationValue.RowFlips.Count() == 1 ? "" : "s", _modificationValue.RowFlips.OrderBy(i => i).Select(i => i + 1).Join(", "));
+            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will horizontally flip Row {2}.",
+                _moduleId, ordinals[logIx], _modificationValue.RowFlip + 1);
             logIx++;
         }
         if (_modificationsToPickFrom.Contains(GridModificationType.TwoColumnsSwap))
@@ -177,20 +158,14 @@ public class BellOfTioScript : MonoBehaviour
         }
         if (_modificationsToPickFrom.Contains(GridModificationType.RowCycle))
         {
-            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will cycle Row{2} {3} rightwards by {4} spaces.",
-                _moduleId, ordinals[logIx], _modificationValue.RowCycles.Count() == 1 ? "" : "s", _modificationValue.RowCycles.OrderBy(i => i).Select(i => i + 1).Join(", "), _modificationValue.RowCycleCount);
-            logIx++;
-        }
-        if (_modificationsToPickFrom.Contains(GridModificationType.FiveRandomPositionsCycle))
-        {
-            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will cycle Positions {2} once.",
-                _moduleId, ordinals[logIx], _modificationValue.RandomPositionsToCycle.Select(i => i + 1).Join(", "));
+            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will cycle Row {2} rightwards by {3} spaces.",
+                _moduleId, ordinals[logIx], _modificationValue.RowCycle + 1, _modificationValue.RowCycleCount);
             logIx++;
         }
         if (_modificationsToPickFrom.Contains(GridModificationType.ColumnCycle))
         {
-            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will cycle Column{2} {3} downwards by {4} spaces.",
-                _moduleId, ordinals[logIx], _modificationValue.ColumnCycles.Count() == 1 ? "" : "s", _modificationValue.ColumnCycles.OrderBy(i => i).Select(i => i + 1).Join(", "), _modificationValue.ColumnCycleCount);
+            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will cycle Column {2} downwards by {3} spaces.",
+                _moduleId, ordinals[logIx], _modificationValue.ColumnCycle + 1, _modificationValue.ColumnCycleCount);
             logIx++;
         }
         if (_modificationsToPickFrom.Contains(GridModificationType.TwoRowsSwap))
@@ -201,8 +176,8 @@ public class BellOfTioScript : MonoBehaviour
         }
         if (_modificationsToPickFrom.Contains(GridModificationType.ColumnFlip))
         {
-            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will vertically flip Column{2} {3}.",
-                _moduleId, ordinals[logIx], _modificationValue.ColumnFlips.Count() == 1 ? "" : "s", _modificationValue.ColumnFlips.OrderBy(i => i).Select(i => i + 1).Join(", "));
+            Debug.LogFormat("[Bell of Tío #{0}] The {1} modification will vertically flip Column {2}.",
+                _moduleId, ordinals[logIx], _modificationValue.ColumnFlip + 1);
             logIx++;
         }
         if (_modificationsToPickFrom.Contains(GridModificationType.RingCycle))
@@ -285,20 +260,18 @@ public class BellOfTioScript : MonoBehaviour
                 _gridPos += 1;
             var letter = _letterGrid[_gridPos];
             ReadLetter(letter);
-            TempText.text = letter.ToString();
             yield return new WaitForSeconds(1.15f);
         }
+        yield return new WaitForSeconds(0.5f);
         if (_readingState == ReadingState.DownTheColumn)
         {
             Debug.LogFormat("[Bell of Tío #{0}] Input has been reset.", _moduleId);
             _input = "";
-            TempText.text = "reset";
             Audio.PlaySoundAtTransform(_voice + "_Reset", transform);
             _inputLocked = true;
             _readingState = ReadingState.Inactive;
             _gridPos = -5;
-            yield return new WaitForSeconds(2f);
-            TempText.text = "-";
+            yield return new WaitForSeconds(1.15f);
             _inputLocked = false;
             _isInteracting = false;
             yield break;
@@ -318,9 +291,8 @@ public class BellOfTioScript : MonoBehaviour
                 _input = "";
                 _gridPos = -5;
                 Module.HandleStrike();
-                TempText.text = "-";
                 _inputLocked = true;
-                yield return new WaitForSeconds(1.5f);
+                yield return new WaitForSeconds(1.15f);
                 _inputLocked = false;
                 _isInteracting = false;
             }
@@ -365,13 +337,10 @@ public class BellOfTioScript : MonoBehaviour
             Audio.PlaySoundAtTransform(_voice + "_First", transform);
         else
             Audio.PlaySoundAtTransform(_voice + "_Next", transform);
-        TempText.text = "added";
         yield return new WaitForSeconds(1.75f);
         ReadLetter(_input.Last());
         _gridPos = -5;
-        TempText.text = _input.Last().ToString();
-        yield return new WaitForSeconds(1.5f);
-        TempText.text = "-";
+        yield return new WaitForSeconds(0.5f);
         _readingState = ReadingState.Inactive;
         _isInteracting = false;
         _inputLocked = false;
@@ -407,30 +376,17 @@ public class BellOfTioScript : MonoBehaviour
             else
                 return new[] { str[04], str[09], str[14], str[19], str[24], str[03], str[08], str[13], str[18], str[23], str[02], str[07], str[12], str[17], str[22], str[01], str[06], str[11], str[16], str[21], str[00], str[05], str[10], str[15], str[20] }.Join("");
         }
-        if (modifIx == GridModificationType.RowColumnSwap)
-        {
-            if (_modificationValue.RowAndColumnSwapPos == 0)
-                return new[] { temp[00], temp[05], temp[10], temp[15], temp[20], temp[01], temp[06], temp[07], temp[08], temp[09], temp[02], temp[11], temp[12], temp[13], temp[14], temp[03], temp[16], temp[17], temp[18], temp[19], temp[04], temp[21], temp[22], temp[23], temp[24] }.Join("");
-            if (_modificationValue.RowAndColumnSwapPos == 1)
-                return new[] { temp[00], temp[05], temp[02], temp[03], temp[04], temp[01], temp[06], temp[11], temp[16], temp[21], temp[10], temp[07], temp[12], temp[13], temp[14], temp[15], temp[08], temp[17], temp[18], temp[19], temp[20], temp[09], temp[22], temp[23], temp[24] }.Join("");
-            if (_modificationValue.RowAndColumnSwapPos == 2)
-                return new[] { temp[00], temp[01], temp[10], temp[03], temp[04], temp[05], temp[06], temp[11], temp[08], temp[09], temp[02], temp[07], temp[12], temp[17], temp[22], temp[15], temp[16], temp[13], temp[18], temp[19], temp[20], temp[21], temp[14], temp[23], temp[24] }.Join("");
-            if (_modificationValue.RowAndColumnSwapPos == 3)
-                return new[] { temp[00], temp[01], temp[02], temp[15], temp[04], temp[05], temp[06], temp[07], temp[16], temp[09], temp[10], temp[11], temp[12], temp[17], temp[14], temp[03], temp[08], temp[13], temp[18], temp[23], temp[20], temp[21], temp[22], temp[19], temp[24] }.Join("");
-            if (_modificationValue.RowAndColumnSwapPos == 4)
-                return new[] { temp[00], temp[01], temp[02], temp[03], temp[20], temp[05], temp[06], temp[07], temp[08], temp[21], temp[10], temp[11], temp[12], temp[13], temp[22], temp[15], temp[16], temp[17], temp[18], temp[23], temp[04], temp[09], temp[14], temp[19], temp[24] }.Join("");
-        }
         if (modifIx == GridModificationType.RowFlip)
         {
-            if (_modificationValue.RowFlips.Contains(0))
+            if (_modificationValue.RowFlip == 0)
                 temp = new[] { temp[04], temp[03], temp[02], temp[01], temp[00], temp[05], temp[06], temp[07], temp[08], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[16], temp[17], temp[18], temp[19], temp[20], temp[21], temp[22], temp[23], temp[24] };
-            if (_modificationValue.RowFlips.Contains(1))
+            if (_modificationValue.RowFlip == 1)
                 temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[04], temp[09], temp[08], temp[07], temp[06], temp[05], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[16], temp[17], temp[18], temp[19], temp[20], temp[21], temp[22], temp[23], temp[24] };
-            if (_modificationValue.RowFlips.Contains(2))
+            if (_modificationValue.RowFlip == 2)
                 temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[04], temp[05], temp[06], temp[07], temp[08], temp[09], temp[14], temp[13], temp[12], temp[11], temp[10], temp[15], temp[16], temp[17], temp[18], temp[19], temp[20], temp[21], temp[22], temp[23], temp[24] };
-            if (_modificationValue.RowFlips.Contains(3))
+            if (_modificationValue.RowFlip == 3)
                 temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[04], temp[05], temp[06], temp[07], temp[08], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[19], temp[18], temp[17], temp[16], temp[15], temp[20], temp[21], temp[22], temp[23], temp[24] };
-            if (_modificationValue.RowFlips.Contains(4))
+            if (_modificationValue.RowFlip == 4)
                 temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[04], temp[05], temp[06], temp[07], temp[08], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[16], temp[17], temp[18], temp[19], temp[24], temp[23], temp[22], temp[21], temp[20] };
             return temp.Join("");
         }
@@ -461,43 +417,32 @@ public class BellOfTioScript : MonoBehaviour
         {
             for (int i = 0; i < _modificationValue.RowCycleCount; i++)
             {
-                if (_modificationValue.RowCycles.Contains(0))
+                if (_modificationValue.RowCycle == 0)
                     temp = new[] { temp[04], temp[00], temp[01], temp[02], temp[03], temp[05], temp[06], temp[07], temp[08], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[16], temp[17], temp[18], temp[19], temp[20], temp[21], temp[22], temp[23], temp[24] };
-                if (_modificationValue.RowCycles.Contains(1))
+                if (_modificationValue.RowCycle == 1)
                     temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[04], temp[09], temp[05], temp[06], temp[07], temp[08], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[16], temp[17], temp[18], temp[19], temp[20], temp[21], temp[22], temp[23], temp[24] };
-                if (_modificationValue.RowCycles.Contains(2))
+                if (_modificationValue.RowCycle == 2)
                     temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[04], temp[05], temp[06], temp[07], temp[08], temp[09], temp[14], temp[10], temp[11], temp[12], temp[13], temp[15], temp[16], temp[17], temp[18], temp[19], temp[20], temp[21], temp[22], temp[23], temp[24] };
-                if (_modificationValue.RowCycles.Contains(3))
+                if (_modificationValue.RowCycle == 3)
                     temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[04], temp[05], temp[06], temp[07], temp[08], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[19], temp[15], temp[16], temp[17], temp[18], temp[20], temp[21], temp[22], temp[23], temp[24] };
-                if (_modificationValue.RowCycles.Contains(4))
+                if (_modificationValue.RowCycle == 4)
                     temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[04], temp[05], temp[06], temp[07], temp[08], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[16], temp[17], temp[18], temp[19], temp[24], temp[20], temp[21], temp[22], temp[23] };
             }
             return temp.Join("");
-        }
-        if (modifIx == GridModificationType.FiveRandomPositionsCycle)
-        {
-            var t = temp.ToArray();
-            var ch = t[_modificationValue.RandomPositionsToCycle[0]];
-            t[_modificationValue.RandomPositionsToCycle[0]] = t[_modificationValue.RandomPositionsToCycle[1]];
-            t[_modificationValue.RandomPositionsToCycle[1]] = t[_modificationValue.RandomPositionsToCycle[2]];
-            t[_modificationValue.RandomPositionsToCycle[2]] = t[_modificationValue.RandomPositionsToCycle[3]];
-            t[_modificationValue.RandomPositionsToCycle[3]] = t[_modificationValue.RandomPositionsToCycle[4]];
-            t[_modificationValue.RandomPositionsToCycle[4]] = ch;
-            return t.Join("");
         }
         if (modifIx == GridModificationType.ColumnCycle)
         {
             for (int i = 0; i < _modificationValue.ColumnCycleCount; i++)
             {
-                if (_modificationValue.ColumnCycles.Contains(0))
+                if (_modificationValue.ColumnCycle == 0)
                     temp = new[] { temp[20], temp[01], temp[02], temp[03], temp[04], temp[00], temp[06], temp[07], temp[08], temp[09], temp[05], temp[11], temp[12], temp[13], temp[14], temp[10], temp[16], temp[17], temp[18], temp[19], temp[15], temp[21], temp[22], temp[23], temp[24] };
-                if (_modificationValue.ColumnCycles.Contains(1))
+                if (_modificationValue.ColumnCycle == 1)
                     temp = new[] { temp[00], temp[21], temp[02], temp[03], temp[04], temp[05], temp[01], temp[07], temp[08], temp[09], temp[10], temp[06], temp[12], temp[13], temp[14], temp[15], temp[11], temp[17], temp[18], temp[19], temp[20], temp[16], temp[22], temp[23], temp[24] };
-                if (_modificationValue.ColumnCycles.Contains(2))
+                if (_modificationValue.ColumnCycle == 2)
                     temp = new[] { temp[00], temp[01], temp[22], temp[03], temp[04], temp[05], temp[06], temp[02], temp[08], temp[09], temp[10], temp[11], temp[07], temp[13], temp[14], temp[15], temp[16], temp[12], temp[18], temp[19], temp[20], temp[21], temp[17], temp[23], temp[24] };
-                if (_modificationValue.ColumnCycles.Contains(3))
+                if (_modificationValue.ColumnCycle == 3)
                     temp = new[] { temp[00], temp[01], temp[02], temp[23], temp[04], temp[05], temp[06], temp[07], temp[03], temp[09], temp[10], temp[11], temp[12], temp[08], temp[14], temp[15], temp[16], temp[17], temp[13], temp[19], temp[20], temp[21], temp[22], temp[18], temp[24] };
-                if (_modificationValue.ColumnCycles.Contains(4))
+                if (_modificationValue.ColumnCycle == 4)
                     temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[24], temp[05], temp[06], temp[07], temp[08], temp[04], temp[10], temp[11], temp[12], temp[13], temp[09], temp[15], temp[16], temp[17], temp[18], temp[14], temp[20], temp[21], temp[22], temp[23], temp[19] };
             }
             return temp.Join("");
@@ -527,15 +472,15 @@ public class BellOfTioScript : MonoBehaviour
         }
         if (modifIx == GridModificationType.ColumnFlip)
         {
-            if (_modificationValue.RowFlips.Contains(0))
+            if (_modificationValue.ColumnFlip == 0)
                 temp = new[] { temp[20], temp[01], temp[02], temp[03], temp[04], temp[15], temp[06], temp[07], temp[08], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[05], temp[16], temp[17], temp[18], temp[19], temp[00], temp[21], temp[22], temp[23], temp[24] };
-            if (_modificationValue.RowFlips.Contains(1))
+            if (_modificationValue.ColumnFlip == 1)
                 temp = new[] { temp[00], temp[21], temp[02], temp[03], temp[04], temp[05], temp[16], temp[07], temp[08], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[06], temp[17], temp[18], temp[19], temp[20], temp[01], temp[22], temp[23], temp[24] };
-            if (_modificationValue.RowFlips.Contains(2))
+            if (_modificationValue.ColumnFlip == 2)
                 temp = new[] { temp[00], temp[01], temp[22], temp[03], temp[04], temp[05], temp[06], temp[17], temp[08], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[16], temp[07], temp[18], temp[19], temp[20], temp[21], temp[02], temp[23], temp[24] };
-            if (_modificationValue.RowFlips.Contains(3))
+            if (_modificationValue.ColumnFlip == 3)
                 temp = new[] { temp[00], temp[01], temp[02], temp[23], temp[04], temp[05], temp[06], temp[07], temp[18], temp[09], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[16], temp[17], temp[08], temp[19], temp[20], temp[21], temp[22], temp[03], temp[24] };
-            if (_modificationValue.RowFlips.Contains(4))
+            if (_modificationValue.ColumnFlip == 4)
                 temp = new[] { temp[00], temp[01], temp[02], temp[03], temp[24], temp[05], temp[06], temp[07], temp[08], temp[19], temp[10], temp[11], temp[12], temp[13], temp[14], temp[15], temp[16], temp[17], temp[18], temp[09], temp[20], temp[21], temp[22], temp[23], temp[04] };
             return temp.Join("");
         }
